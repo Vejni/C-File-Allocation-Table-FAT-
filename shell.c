@@ -59,8 +59,14 @@ void B(){
   mymkdir("/myfirstdir/myseconddir/mythirddir");
   writedisk(filename);
   mymkdir("/myfirstdir2");
-  mylistdir("/myfirstdir/myseconddir/mythirddir");
-  //printf("%s\n",listdir );
+
+  mychdir("/myfirstdir/myseconddir");
+
+  char * listdir = mylistdir("/");
+  printf("Contents: %s\n",listdir );
+
+  listdir = mylistdir("/myfirstdir/myseconddir/");
+  printf("Contents: %s\n",listdir );
 
   //mymkdir("system/path/like");
   //writedisk(filename);
