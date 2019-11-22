@@ -1,0 +1,19 @@
+B3-B1 starts here
+virtualdisk[0] = CS3026 Operating Systems Assessment
+
+Currently in: root. Creating directory myfirstdir
+Currently in: myfirstdir. Creating directory myseconddir
+Currently in: myseconddir. Creating directory mythirddir
+
+Currently in: root. Changing diretory to: myfirstdir
+Currently in: myfirstdir. Changing diretory to: myseconddir
+
+Contents: mythirddir	
+Currently in: root. Changing diretory to: myfirstdir
+Currently in: myfirstdir. Changing diretory to: myseconddir
+
+Currently in: root. Changing diretory to: myfirstdir
+Currently in: myfirstdir. Changing diretory to: myseconddir
+
+Contents: mythirddir	testfile.txt	
+B3-B1 ends here

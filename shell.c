@@ -16,7 +16,7 @@ void C(){
   printf("C3-C1 starts here\n" );
   format();
 
-  char * filename = "virtualdiskD3_C1";
+  char * filename = "virtualdiskC3_C1";
   char * alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXWZ";
   char * testfilename = "testfile.txt";
 
@@ -54,24 +54,24 @@ void B(){
   printf("B3-B1 starts here\n" );
   format();
 
-  char * filename = "virtualdiskB3_B1";
-
   mymkdir("/myfirstdir/myseconddir/mythirddir");
+
+  char * listdir = mylistdir("/myfirstdir/myseconddir");
+  printf("Contents: %s\n",listdir );
+
+  char * filename = "virtualdiskB3_B1_a";
   writedisk(filename);
-  mymkdir("/myfirstdir2");
 
   mychdir("/myfirstdir/myseconddir");
+  MyFILE * f = myfopen("testfile.txt","w");
+  myfclose(f);
 
-  char * listdir = mylistdir("/");
+  listdir = mylistdir("/myfirstdir/myseconddir");
   printf("Contents: %s\n",listdir );
 
-  listdir = mylistdir("/myfirstdir/myseconddir/");
-  printf("Contents: %s\n",listdir );
+  filename = "virtualdiskB3_B1_b";
+  writedisk(filename);
 
-  //mymkdir("system/path/like");
-  //writedisk(filename);
-
-  printFAT();
   printf("B3-B1 ends here\n" );
 }
 

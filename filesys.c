@@ -127,9 +127,18 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
     file_ptr->filelength = 1; /* EOF included */
     file_ptr->write = TRUE;
 
+    int i = 0;
+    while (virtualDisk[currentDirIndex].dir.entrylist[i].unused != TRUE){
+      if (i <= DIRENTRYCOUNT) i++;
+      else{
+        printf("Cannot create file as there is no more space in this directory.\n");
+        return NULL;
+      }
+    }
+
     /* Create file entry and append to current folder */
     Dir_ptr = (dirblock_t *) &virtualDisk[currentDirIndex].dir;
-    file_entry = (direntry_t *) Dir_ptr->entrylist;
+    file_entry = (direntry_t *) &Dir_ptr->entrylist[i];
     strcpy(file_entry->name, filename);
     file_entry->dirblock_ptr = NULL;
     file_entry->filelength = 0;
