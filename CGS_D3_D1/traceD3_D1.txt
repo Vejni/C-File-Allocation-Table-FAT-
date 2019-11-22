@@ -1,0 +1,8 @@
+D3-D1 starts here
+virtualdisk[0] = CS3026 Operating Systems Assessment
+virtualDisk[1].fat[0]= 0
+virtualDisk[1].fat[1]= 2
+virtualDisk[1].fat[2]= 0
+virtualDisk[1].fat[3]= 0
+Rest is -1.
+D3-D1 ends here
