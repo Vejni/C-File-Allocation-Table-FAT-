@@ -303,6 +303,7 @@ void mymkdir ( const char * path ){
 /* Initialising the directory */
 void createDirectory(const char * name, int index){
   int i = 0;
+  /* Get index within direntry */
   while (virtualDisk[currentDirIndex].dir.entrylist[i].unused != TRUE){
     if (i <= DIRENTRYCOUNT) i++;
     else{
@@ -310,7 +311,7 @@ void createDirectory(const char * name, int index){
       return;
     }
   }
-
+  /* Initialise Entry */
   diskblock_t * block = (diskblock_t *) malloc(sizeof(diskblock_t));
   direntry_t * free_entry = &virtualDisk[currentDirIndex].dir.entrylist[i];
   free_entry->unused = FALSE;
@@ -320,22 +321,22 @@ void createDirectory(const char * name, int index){
   memset(free_entry->name, '\0', MAXNAME);
   strcpy(free_entry->name, name);
 
-  //currentDirEntry = free_entry;
-
+  /* Initialise Block */
   block->dir.parent = currentDirBlock_ptr;
   block->dir.childrenNo = 0;
   block->dir.entry_ptr = free_entry;
 
-  /* Set all direntries to available */
+  /* Set all direntries to be available */
   for (int i = 0; i < DIRENTRYCOUNT; i++) {
     block->dir.entrylist[i].unused = TRUE;
   }
 
   //currentDirEntry = &block.dir.entrylist[0];
 
+  /* Set Current */
   currentDirIndex = index;
-  //currentDirBlock_ptr->childrenNo++;
-  currentDirBlock_ptr = &block->dir;
+  //currentDirBlock_ptr->childrenNo++; needs fixing, or removed
+  currentDirBlock_ptr = &virtualDisk[currentDirIndex].dir;
 
   writeblock(block, index);
 
@@ -369,10 +370,11 @@ void mychdir ( const char * path ){
 
      if (index > -1){
        nextDirBlock_ptr = virtualDisk[currentDirIndex].dir.entrylist[index].dirblock_ptr;
+
        if (currentDirBlock_ptr == rootDirBlock_ptr) printf( "Currently in: root. Changing diretory to: %s\n",token );
        else printf( "Currently in: %s. Changing diretory to: %s\n",currentDirBlock_ptr->entry_ptr->name ,nextDirBlock_ptr->entry_ptr->name );
 
-
+       /* Update current */
        currentDirBlock_ptr = nextDirBlock_ptr;
        currentDirIndex = currentDirBlock_ptr->entry_ptr->firstblock;
      }
@@ -393,8 +395,10 @@ char * mylistdir(const char * path){
   /* Changin directories first until last one */
   mychdir(path);
 
+  /* dir is current */
   dirblock_t * dir = &virtualDisk[currentDirIndex].dir;
 
+  /* Get names in the buffer and copy over */
   char buff[MAXNAME*MAXBLOCKS];
   memset(buff, '\0', MAXNAME*MAXBLOCKS);
   for(int i = 0; i < DIRENTRYCOUNT; i++) {
@@ -410,14 +414,16 @@ char * mylistdir(const char * path){
   return ls;
 }
 
+/* Prints block, works with text */
 void printBlock ( int blockIndex ){
    printf ( "virtualdisk[%d] = %s\n", blockIndex, virtualDisk[blockIndex].data ) ;
 }
 
+/* Prints FAT where FAT entry is not UNUSED*/
 void printFAT(){
   for ( int i = 0; i < FATBLOCKSNEEDED; i++){
     for ( int j = 0; j < FATENTRYCOUNT; j++){
-      if (virtualDisk[i+1].fat[j] != -1){
+      if (virtualDisk[i+1].fat[j] != UNUSED){
         printf("virtualDisk[%d].fat[%d]= %d\n", i+1,j, virtualDisk[i+1].fat[j]);
       }
     }
