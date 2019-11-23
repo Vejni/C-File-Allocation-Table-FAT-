@@ -30,7 +30,6 @@ typedef fatentry_t fatblock_t [ FATENTRYCOUNT ] ;
 typedef struct direntry {
    struct dirblock * dirblock_ptr; /* Points to the relevant dirblock instance, set to NULL for files, replaces isdir too */
    Byte        unused ;
-   time_t      modtime ; // Not implemented yet
    int         filelength ;
    fatentry_t  firstblock ; /* Start in FAT */
    char   name [MAXNAME] ;

@@ -59,7 +59,6 @@ void format (){
    FAT[i] = ENDOFCHAIN;
    i++;
 
-   // Root
    FAT[i] = ENDOFCHAIN;
    i++;
 
@@ -73,6 +72,7 @@ void format (){
    /* Initialize Root */
    rootDirBlock_ptr->parent = NULL; /* No parent of root */
    rootDirBlock_ptr->entry_ptr = NULL; /* No entry for root */
+   rootDirBlock_ptr->childrenNo = 0;
 
    /* Set all direntries to available */
    for (int i = 0; i < DIRENTRYCOUNT; i++) {
@@ -141,7 +141,6 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
     file_entry->filelength = 0;
     file_entry->firstblock = freeblock;
     file_entry->unused = FALSE;
-    file_entry->modtime = 0; // later
 
     /* FAT */
     FAT[freeblock] = ENDOFCHAIN;
@@ -158,7 +157,6 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
   file_ptr->pos = 0;
   strcpy(file_ptr->mode, mode);
 
-  // Write FAT to disk, also set file open
   return file_ptr;
 }
 
@@ -166,7 +164,6 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
 void myfclose ( MyFILE * stream ){
   if (stream->write == TRUE){
     myfputc(EOF, stream);
-    //entry_ptr->filelength = stream->filelength;
     writeblock(&stream->buffer, stream->blockno);
     stream->write = 0;
   }
@@ -219,7 +216,6 @@ void myfputc ( int b, MyFILE * stream ){
 }
 
 /* Reads a character from file */
-// Doublecheck
 int myfgetc ( MyFILE * stream ){
   if (stream->pos >= BLOCKSIZE){
     if (FAT[stream->blockno] == ENDOFCHAIN){
@@ -311,7 +307,6 @@ void createDirectory(const char * name, int index){
   direntry_t * free_entry = &virtualDisk[currentDirIndex].dir.entrylist[i];
   free_entry->unused = FALSE;
   free_entry->dirblock_ptr = &block->dir;
-  free_entry->modtime = 0;
   free_entry->firstblock = index;
   memset(free_entry->name, '\0', MAXNAME);
   strcpy(free_entry->name, name);
@@ -326,11 +321,9 @@ void createDirectory(const char * name, int index){
     block->dir.entrylist[i].unused = TRUE;
   }
 
-  //currentDirEntry = &block.dir.entrylist[0];
-
   /* Set Current */
   currentDirIndex = index;
-  currentDirBlock_ptr->childrenNo = currentDirBlock_ptr->childrenNo + 1; //needs fixing, or removed
+  currentDirBlock_ptr->childrenNo = currentDirBlock_ptr->childrenNo + 1;
   currentDirBlock_ptr = &virtualDisk[currentDirIndex].dir;
 
   writeblock(block, index);
@@ -358,6 +351,11 @@ void mychdir( const char * path){
   else if ((pathCopy[0] == '.' && pathCopy[1] == '.')){
     if (currentDirBlock_ptr == rootDirBlock_ptr){
       printf( "Currently in: root. There is nowhere to go back\n");
+    }
+    else if (currentDirBlock_ptr->parent == rootDirBlock_ptr){
+      printf( "Currently in: %s. Changing diretory to: root\n",currentDirBlock_ptr->entry_ptr->name );
+      currentDirBlock_ptr = rootDirBlock_ptr;
+      currentDirIndex = rootDirIndex;
     }
     else{
       nextDirBlock_ptr = currentDirBlock_ptr->parent;
@@ -455,7 +453,7 @@ char * mylistdir(const char * path){
   return ls;
 }
 
-/* Removes a file */
+/* Removes a file OR a directory*/
 void myremove ( const char * path ){
   diskblock_t block;
   int temp;
@@ -473,9 +471,29 @@ void myremove ( const char * path ){
     return;
   }
 
+
   /* Set FAT chain to UNUSED and reset blocks */
   dirblock_t * dir = &virtualDisk[currentDirIndex].dir;
   int i = dir->entrylist[index].firstblock;
+
+  /* Directory to be deleted */
+  if (strchr(path,'.') == NULL){
+
+    /* Return if directory is not empty */
+    for (size_t i = 0; i < DIRENTRYCOUNT; i++) {
+      if (dir->entrylist[index].dirblock_ptr->entrylist[i].unused == FALSE){
+        printf("Not empty directories cannot be deleted.\n");
+        return;
+      }
+    }
+  }
+
+  if (dir == rootDirBlock_ptr){
+    i--;
+    for ( int j = 0; j < BLOCKSIZE; j++) block.data[j] = '\0';
+    writeblock(&block,i);
+    i++;
+  }
 
   for ( int j = 0; j < BLOCKSIZE; j++) block.data[j] = '\0';
   writeblock(&block,i);
@@ -499,9 +517,9 @@ void myremove ( const char * path ){
   /* Reset entry */
   currentDirBlock_ptr->entrylist[index].unused = TRUE;
   currentDirBlock_ptr->entrylist[index].dirblock_ptr = NULL;
-  currentDirBlock_ptr->entrylist[index].modtime = 0;
   currentDirBlock_ptr->entrylist[index].filelength = 0;
   currentDirBlock_ptr->entrylist[index].firstblock = 0;
+  strcpy(currentDirBlock_ptr->entrylist[index].name,"");
 
   /* Decrement childrenNo */
   currentDirBlock_ptr->childrenNo = currentDirBlock_ptr->childrenNo - 1;

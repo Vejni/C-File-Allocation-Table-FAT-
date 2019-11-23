@@ -1,0 +1,57 @@
+A5-A1 starts here
+virtualdisk[0] = CS3026 Operating Systems Assessment
+
+Creating directories:
+Currently in: root. Creating directory firstdir
+Currently in: firstdir. Creating directory seconddir
+
+Creating first file: 
+Currently in: root. Changing diretory to: firstdir
+Currently in: firstdir. Changing diretory to: seconddir
+
+Changind directories with absolute path : 
+Currently in: root. Changing diretory to: firstdir
+Currently in: firstdir. Changing diretory to: seconddir
+
+Listing using absolute path : 
+Currently in: root. Changing diretory to: firstdir
+Currently in: firstdir. Changing diretory to: seconddir
+
+Contents of /firstdir/seconddir: testfile1.txt	
+
+Listing using . : 
+Contents of /firstdir/seconddir: testfile1.txt	
+
+Creating second file. 
+Creating thirddir using relative path. 
+
+Currently in: seconddir. Creating directory thirddir
+
+Changing directories using .. : 
+Currently in: thirddir. Changing diretory to: seconddir
+
+Creating third file with relative path: 
+Currently in: seconddir. Changing diretory to: thirddir
+
+Changing directories with using .. : 
+Currently in: thirddir. Changing diretory to: seconddir
+
+Changing directories: 
+Currently in: seconddir. Changing diretory to: thirddir
+
+Changing directories using ..: 
+Currently in: thirddir. Changing diretory to: seconddir
+
+Changing directories using ..: 
+Currently in: seconddir. Changing diretory to: firstdir
+
+Changing directories using / : 
+Currently in: firstdir. Changing diretory to: root
+
+Print FAT: 
+virtualDisk[1].fat[0]= 0
+virtualDisk[1].fat[1]= 2
+virtualDisk[1].fat[2]= 0
+virtualDisk[1].fat[3]= 0
+Rest is -1.
+A5-A1 ends here

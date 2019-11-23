@@ -159,6 +159,21 @@ void A(){
   printf("Changing directories using ..: \n" );
   mychdir("..");
 
+  myremove("thirddir");
+
+  printf("Changing directories using ..: \n" );
+  mychdir("..");
+
+  myremove("seconddir");
+
+  printf("Changing directories using / : \n" );
+  mychdir("..");
+
+  myremove("firstdir");
+
+  filename = "virtualdiskA5_A1_d";
+  writedisk(filename);
+
   printf("Print FAT: \n" );
   printFAT();
   printf("A5-A1 ends here\n" );
