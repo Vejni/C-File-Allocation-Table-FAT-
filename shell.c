@@ -105,15 +105,15 @@ void A(){
   mychdir("/firstdir/seconddir");
 
   /* listdir with absolute path */
-  printf("Listing with using absolute path : \n" );
+  printf("Listing using absolute path : \n" );
   listdir = mylistdir("/firstdir/seconddir");
   printf("Contents of /firstdir/seconddir: %s\n\n",listdir );
 
-  printf("Listing with using . : \n" );
+  printf("Listing using . : \n" );
   listdir = mylistdir(".");
   printf("Contents of /firstdir/seconddir: %s\n\n",listdir );
 
-  printf("Creating second file: \n" );
+  printf("Creating second file. \n" );
   f = myfopen("testfile2.txt","w");
   text = "Look ma no hands";
   for (size_t i = 0; i < strlen(text); i++) {
@@ -121,15 +121,15 @@ void A(){
   }
   myfclose(f);
 
-  printf("Creating thirddir using relative path: \n" );
+  printf("Creating thirddir using relative path. \n" );
   mymkdir("thirddir");
 
-  printf("Changing directories with using .. : \n" );
+  printf("Changing directories using .. : \n" );
   mychdir("..");
 
   printf("Creating third file with relative path: \n" );
   f = myfopen("thirddir/testfile3.txt", "w");
-  text = "interesting text";
+  text = "Thanks for the extension :)";
   for (size_t i = 0; i < strlen(text); i++) {
     myfputc(text[i],f);
   }
@@ -137,6 +137,27 @@ void A(){
 
   filename = "virtualdiskA5_A1_a";
   writedisk(filename);
+
+  printf("Changing directories with using .. : \n" );
+  mychdir("..");
+
+  myremove("testfile1.txt");
+
+  myremove("testfile2.txt");
+
+  filename = "virtualdiskA5_A1_b";
+  writedisk(filename);
+
+  printf("Changing directories: \n" );
+  mychdir("thirddir");
+
+  myremove("testfile3.txt");
+
+  filename = "virtualdiskA5_A1_c";
+  writedisk(filename);
+
+  printf("Changing directories using ..: \n" );
+  mychdir("..");
 
   printf("Print FAT: \n" );
   printFAT();

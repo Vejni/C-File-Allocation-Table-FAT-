@@ -21,56 +21,56 @@
 #define UNUSED        -1
 #define ENDOFCHAIN     0
 
+/* FAT is just an array of shorts */
 typedef unsigned char Byte ;
 typedef short fatentry_t ;
 typedef fatentry_t fatblock_t [ FATENTRYCOUNT ] ;
 
+/* Directories and files have a direntry structure */
 typedef struct direntry {
-   //int         entrylength ;   // records length of this entry (can be used with names of variables length)
-   struct dirblock * dirblock_ptr;
-   // struct dirblock * parent_dirblock_ptr;
+   struct dirblock * dirblock_ptr; /* Points to the relevant dirblock instance, set to NULL for files, replaces isdir too */
    Byte        unused ;
-   time_t      modtime ;
+   time_t      modtime ; // Not implemented yet
    int         filelength ;
-   fatentry_t  firstblock ;
+   fatentry_t  firstblock ; /* Start in FAT */
    char   name [MAXNAME] ;
 } direntry_t ;
 
+/* Only directories have this */
 typedef struct dirblock {
-   //char name[MAXNAME];
    struct dirblock * parent;
-   struct direntry * entry_ptr;
-   //struct dirblock ** children;
+   struct direntry * entry_ptr; /* Pointer to relevant entry instance */
    int childrenNo;
-   direntry_t entrylist [ DIRENTRYCOUNT ] ; // the first two integer are marker and endpos
-   //time_t modTime;
-   //fatentry_t fBlock;
+   direntry_t entrylist [ DIRENTRYCOUNT ] ; /* Number of directory entries is capped at 3 */
 } dirblock_t ;
 
+/* Data is just an array of bytes */
 typedef Byte datablock_t [ BLOCKSIZE ] ;
 
+/* A block can be data,dir or fat */
 typedef union block {
    datablock_t data ;
    dirblock_t  dir  ;
    fatblock_t  fat  ;
 } diskblock_t ;
 
+/* Virtualdisk is an array of block structures */
 extern diskblock_t virtualDisk [ MAXBLOCKS ] ;
 
 
-// when a file is opened on this disk, a file handle has to be
-// created in the opening program
+/* When a file is opened on this disk, a file handle has to be
+   created in the opening program */
 typedef struct filedescriptor {
    char        mode[3]    ; /* Some modes are 2 letters, EOS char */
-   fatentry_t  blockno    ;
+   fatentry_t  blockno    ; /* FAT index */
    int         pos        ;
    diskblock_t buffer     ;
    int         filelength ;
-   int         write      ;
+   int         write      ; /* File currently open for writing */
 } MyFILE ;
 
 
-
+/* Function prototypes */
 void format() ;
 void writedisk ( const char * filename );
 void printBlock(int blockIndex);
@@ -88,13 +88,7 @@ char * mylistdir(const char * path);
 void mylistall();
 void mylistallinner(dirblock_t * dir);
 void mychdir ( const char * path );
-#endif
+void myremove ( const char * path );
+const char * mychtofile (const char * filename);
 
-/*
-#define NUM_TYPES (sizeof types / sizeof types[0])
-static* int types[] = {
-    1,
-    2,
-    3,
-    4 };
-*/
+#endif

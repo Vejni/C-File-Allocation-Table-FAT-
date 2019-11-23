@@ -9,34 +9,29 @@ diskblock_t  virtualDisk [MAXBLOCKS];
 fatentry_t   FAT [MAXBLOCKS];
 fatentry_t   rootDirIndex = FATBLOCKSNEEDED + 1;
 dirblock_t * rootDirBlock_ptr = NULL;
-//direntry_t * currentDirEntry = NULL;
 fatentry_t   currentDirIndex = 0;
 dirblock_t * currentDirBlock_ptr = NULL;
 const char parser[2] = "/";
 
-
+/* Creates hex file */
 void writedisk ( const char * filename ){
-   // printf ( "writedisk> virtualdisk[0] = %s\n", virtualDisk[0].data ) ;
-   FILE * dest = fopen( filename, "w" ) ;
+  FILE * dest = fopen( filename, "w" ) ;
    if ( fwrite ( virtualDisk, sizeof(virtualDisk), 1, dest ) < 0 )
       fprintf ( stderr, "write virtual disk to disk failed\n" ) ;
-   //write( dest, virtualDisk, sizeof(virtualDisk) ) ;
    fclose(dest) ;
-
 }
 
+/* Reads hex file, maybe? Do not touch */
 void readdisk ( const char * filename ){
    FILE * dest = fopen( filename, "r" ) ;
    if ( fread ( virtualDisk, sizeof(virtualDisk), 1, dest ) < 0 )
       fprintf ( stderr, "write virtual disk to disk failed\n" ) ;
-   //write( dest, virtualDisk, sizeof(virtualDisk) ) ;
-      fclose(dest) ;
+   fclose(dest) ;
 }
 
+/* Writes block to virtualdisk */
 void writeblock ( diskblock_t * block, int block_address ){
-   //printf ( "writeblock> block %d = %s\n", block_address, block->data ) ;
-   memmove ( virtualDisk[block_address].data, block->data, BLOCKSIZE ) ;
-   //printf ( "writeblock> virtualdisk[%d] = %s / %d\n", block_address, virtualDisk[block_address].data, (int)virtualDisk[block_address].data ) ;
+  memmove ( virtualDisk[block_address].data, block->data, BLOCKSIZE ) ;
 }
 
 /* Format disk and FAT */
@@ -46,7 +41,6 @@ void format (){
    /* Set root and current dir */
    rootDirBlock_ptr = (dirblock_t *) &virtualDisk[rootDirIndex].dir;
    currentDirIndex = rootDirIndex;
-   //currentDirEntry = &rootDir_ptr->entrylist[currentDirIndex];
    currentDirBlock_ptr = rootDirBlock_ptr;
 
    /*Initialize Block 0 */
@@ -87,7 +81,6 @@ void format (){
 
    /* Print */
    printBlock(0);
-
 }
 
 /* Writes FAT to disk */
@@ -109,32 +102,7 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
 
   /* Check if we need to change directories */
   if (strchr(filename,'/') != NULL){
-    char * pathCopy = malloc(strlen(filename));
-    char * path_to_file = malloc(strlen(filename));
-    char * token;
-    char * prev_token;
-
-    strcpy(pathCopy, filename);
-    token = strtok(pathCopy, parser);
-    if (filename[0] == '/'){
-      printf("%c\n", filename[0]);
-      strcpy(path_to_file,"/");
-    }
-    else strcpy(path_to_file,"");
-
-    while( token != NULL ) {
-       prev_token = token;
-       token = strtok(NULL, parser);
-
-       if (token != NULL){
-         strcat(path_to_file,prev_token);
-         strcat(path_to_file,"/");
-       }
-    }
-    mychdir(path_to_file);
-    filename = prev_token;
-    free(pathCopy);
-    free(path_to_file);
+    filename = mychtofile(filename);
   }
 
   /* Write */
@@ -196,8 +164,6 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
 
 /* Closes file, puts EOF and writes to block */
 void myfclose ( MyFILE * stream ){
-  //dirblock_t * rootDir_ptr = (dirblock_t *) &virtualDisk[rootDirIndex].dir;
-  //direntry_t * entry_ptr = rootDir_ptr->entrylist[0];
   if (stream->write == TRUE){
     myfputc(EOF, stream);
     //entry_ptr->filelength = stream->filelength;
@@ -364,7 +330,7 @@ void createDirectory(const char * name, int index){
 
   /* Set Current */
   currentDirIndex = index;
-  //currentDirBlock_ptr->childrenNo++; needs fixing, or removed
+  currentDirBlock_ptr->childrenNo = currentDirBlock_ptr->childrenNo + 1; //needs fixing, or removed
   currentDirBlock_ptr = &virtualDisk[currentDirIndex].dir;
 
   writeblock(block, index);
@@ -376,7 +342,7 @@ void createDirectory(const char * name, int index){
 }
 
 /* Changes dirs, creates path if not found*/
-void mychdir ( const char * path ){
+void mychdir( const char * path){
   char * token;
   char * pathCopy = malloc(strlen(path));
   strcpy(pathCopy, path);
@@ -433,6 +399,36 @@ void mychdir ( const char * path ){
   printf("\n");
 }
 
+/* Goes to file, ie updates current, and returns file name*/
+const char * mychtofile (const char * filename){
+  char * pathCopy = malloc(strlen(filename));
+  char * path_to_file = malloc(strlen(filename));
+  char * token;
+  char * prev_token;
+
+  strcpy(pathCopy, filename);
+  token = strtok(pathCopy, parser);
+  if (filename[0] == '/'){
+    strcpy(path_to_file,"/");
+  }
+  else strcpy(path_to_file,"");
+
+  while( token != NULL ) {
+     prev_token = token;
+     token = strtok(NULL, parser);
+
+     if (token != NULL){
+       strcat(path_to_file,prev_token);
+       strcat(path_to_file,"/");
+     }
+  }
+  mychdir(path_to_file);
+  filename = prev_token;
+  free(pathCopy);
+  free(path_to_file);
+  return filename;
+}
+
 /* List contents of the directory, changes to it as well if it is deeper */
 char * mylistdir(const char * path){
   /* Changin directories first */
@@ -457,6 +453,62 @@ char * mylistdir(const char * path){
   for(int i=0; i < (strlen(buff)+1); i++) ls[i] = buff[i];
 
   return ls;
+}
+
+/* Removes a file */
+void myremove ( const char * path ){
+  diskblock_t block;
+  int temp;
+
+  /* Find file and go to it */
+  if (strchr(path,'/') != NULL){
+      path = mychtofile(path);
+  }
+
+  /* Find its index within entrylist */
+  int index = findEntry(path);
+
+  if (index == -1){
+    printf("No entry found\n");
+    return;
+  }
+
+  /* Set FAT chain to UNUSED and reset blocks */
+  dirblock_t * dir = &virtualDisk[currentDirIndex].dir;
+  int i = dir->entry_ptr->firstblock;
+
+  for ( int j = 0; j < BLOCKSIZE; j++) block.data[j] = '\0';
+  writeblock(&block,i);
+
+  temp = FAT[i];
+  FAT[i] = UNUSED;
+  i = temp;
+
+  while (i != ENDOFCHAIN){
+    /* Reset Block */
+    for ( int j = 0; j < BLOCKSIZE; j++) block.data[j] = '\0';
+    writeblock(&block,i);
+    printf("got here\n" );
+
+    /* Get next of chain and set it to UNUSED */
+    temp = FAT[i];
+    FAT[i] = UNUSED;
+    i = temp;
+
+  }
+
+  /* Reset entry */
+  currentDirBlock_ptr->entrylist[index].unused = TRUE;
+  currentDirBlock_ptr->entrylist[index].dirblock_ptr = NULL;
+  currentDirBlock_ptr->entrylist[index].modtime = 0;
+  currentDirBlock_ptr->entrylist[index].filelength = 0;
+  currentDirBlock_ptr->entrylist[index].firstblock = 0;
+
+  /* Decrement childrenNo */
+  currentDirBlock_ptr->childrenNo = currentDirBlock_ptr->childrenNo - 1;
+
+  /* Update FAT */
+  copyFAT();
 }
 
 /* Prints block, works with text */
