@@ -475,7 +475,7 @@ void myremove ( const char * path ){
 
   /* Set FAT chain to UNUSED and reset blocks */
   dirblock_t * dir = &virtualDisk[currentDirIndex].dir;
-  int i = dir->entry_ptr->firstblock;
+  int i = dir->entrylist[index].firstblock;
 
   for ( int j = 0; j < BLOCKSIZE; j++) block.data[j] = '\0';
   writeblock(&block,i);
@@ -488,7 +488,6 @@ void myremove ( const char * path ){
     /* Reset Block */
     for ( int j = 0; j < BLOCKSIZE; j++) block.data[j] = '\0';
     writeblock(&block,i);
-    printf("got here\n" );
 
     /* Get next of chain and set it to UNUSED */
     temp = FAT[i];
