@@ -81,7 +81,7 @@ void B(){
 void A(){
   MyFILE * f;
   char * listdir;
-  char * filename = "virtualdiskA5_A1";
+  char * filename;
   char * alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXWZ";
   char * text;
 
@@ -135,6 +135,7 @@ void A(){
   }
   myfclose(f);
 
+  filename = "virtualdiskA5_A1_a";
   writedisk(filename);
 
   printf("Print FAT: \n" );

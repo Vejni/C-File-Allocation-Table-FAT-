@@ -116,7 +116,11 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
 
     strcpy(pathCopy, filename);
     token = strtok(pathCopy, parser);
-    strcpy(path_to_file,"/");
+    if (filename[0] == '/'){
+      printf("%c\n", filename[0]);
+      strcpy(path_to_file,"/");
+    }
+    else strcpy(path_to_file,"");
 
     while( token != NULL ) {
        prev_token = token;
@@ -129,6 +133,8 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
     }
     mychdir(path_to_file);
     filename = prev_token;
+    free(pathCopy);
+    free(path_to_file);
   }
 
   /* Write */
