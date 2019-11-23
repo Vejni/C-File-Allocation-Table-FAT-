@@ -107,6 +107,30 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
   direntry_t * file_entry;
   int freeblock;
 
+  /* Check if we need to change directories */
+  if (strchr(filename,'/') != NULL){
+    char * pathCopy = malloc(strlen(filename));
+    char * path_to_file = malloc(strlen(filename));
+    char * token;
+    char * prev_token;
+
+    strcpy(pathCopy, filename);
+    token = strtok(pathCopy, parser);
+    strcpy(path_to_file,"/");
+
+    while( token != NULL ) {
+       prev_token = token;
+       token = strtok(NULL, parser);
+
+       if (token != NULL){
+         strcat(path_to_file,prev_token);
+         strcat(path_to_file,"/");
+       }
+    }
+    mychdir(path_to_file);
+    filename = prev_token;
+  }
+
   /* Write */
   if (strcmp(mode,"w") == 0){
     freeblock = findUnused();
@@ -119,7 +143,6 @@ MyFILE * myfopen ( const char * filename, const char * mode ){
 
     /* Prepare memory */
     memset(file_ptr, '\0', sizeof(MyFILE));
-
 
     /* File descriptor */
     file_ptr->blockno = freeblock;
@@ -359,6 +382,20 @@ void mychdir ( const char * path ){
     currentDirIndex = rootDirIndex;
     currentDirBlock_ptr = rootDirBlock_ptr;
   }
+  /* Implement change back relative */
+  else if ((pathCopy[0] == '.' && pathCopy[1] == '.')){
+    if (currentDirBlock_ptr == rootDirBlock_ptr){
+      printf( "Currently in: root. There is nowhere to go back\n");
+    }
+    else{
+      nextDirBlock_ptr = currentDirBlock_ptr->parent;
+      printf( "Currently in: %s. Changing diretory to: %s\n",currentDirBlock_ptr->entry_ptr->name ,nextDirBlock_ptr->entry_ptr->name );
+      currentDirBlock_ptr = nextDirBlock_ptr;
+      currentDirIndex = currentDirBlock_ptr->entry_ptr->firstblock;
+    }
+    printf("\n");
+    return;
+  }
 
   /* get the first token */
   token = strtok(pathCopy, parser);
@@ -392,8 +429,10 @@ void mychdir ( const char * path ){
 
 /* List contents of the directory, changes to it as well if it is deeper */
 char * mylistdir(const char * path){
-  /* Changin directories first until last one */
-  mychdir(path);
+  /* Changin directories first */
+  if (path[0] != '.'){
+    mychdir(path);
+  }
 
   /* dir is current */
   dirblock_t * dir = &virtualDisk[currentDirIndex].dir;
